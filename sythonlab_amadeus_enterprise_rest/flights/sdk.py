@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import List, Any, Optional
+from uuid import uuid4
 
 import requests
 
@@ -9,21 +11,38 @@ from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
 
 
 class FlightSDK:
-    currency = "USD"
+    ama_ref = None
+    prefix_ama_ref = ""
+    suffix_ama_ref = ""
+    currency = Currency.USD
     auth_data = None
     debug = False
 
-    def __init__(self, *, currency: Currency = Currency.JMD, debug: bool = False):
+    def __init__(self, *, prefix_ama_ref: str = "", suffix_ama_ref: str = "", currency: Currency = Currency.USD,
+                 debug: bool = False, ama_ref: str = None):
         self.currency = currency
         self.debug = debug
+        self.prefix_ama_ref = prefix_ama_ref
+        self.suffix_ama_ref = suffix_ama_ref
+        if not ama_ref:
+            self.ama_ref = self.build_ama_ref()
+        else:
+            self.ama_ref = ama_ref
+
+    def build_ama_ref(self):
+        return f"{self.prefix_ama_ref}/{datetime.now().timestamp()}/{str(uuid4())}/{self.suffix_ama_ref}"
 
     @property
     def access_token(self):
+        """Retrieve the access token from auth_data if available."""
+
         if self.auth_data:
             return self.auth_data.get('access_token')
         return None
 
     def build_headers(self, headers: Optional[Any] = None, use_json: bool = True):
+        """Build request headers, adding Content-Type and Authorization if not provided."""
+
         if not headers:
             headers = {}
 
@@ -33,9 +52,14 @@ class FlightSDK:
         if not headers.get('Authorization') and self.access_token:
             headers['Authorization'] = f"Bearer {self.access_token}"
 
+        if self.ama_ref:
+            headers['ama-client-ref'] = self.ama_ref
+
         return headers
 
     def request(self, *, url: str, payload: Any, headers: Optional[dict] = None, use_json: bool = True):
+        """Make a POST request to the specified URL with the given payload and headers."""
+
         headers = self.build_headers(headers, use_json=use_json)
 
         if self.debug:
@@ -59,6 +83,8 @@ class FlightSDK:
         return response.status_code, response.json()
 
     def login(self):
+        """Authenticate and obtain an access token."""
+
         payload = {
             "grant_type": "client_credentials",
             "client_id": settings.AMADEUS_CONFIG.get('CLIENT_ID'),
@@ -72,6 +98,8 @@ class FlightSDK:
 
     def search_availability(self, *, itinerary: List[SearchAvailabilityItinerary],
                             travelers: List[SearchAvailabilityPax]):
+        """Search for flight availability based on the provided itinerary and travelers."""
+
         self.login()
 
         payload = {
@@ -113,4 +141,20 @@ class FlightSDK:
             }
         }
 
-        status, data = self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload)
+        return self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload)
+
+    def pricing(self, *, flight_data: Any):
+        """Payload should be the flight offers obtained from search_availability method."""
+
+        self.login()
+
+        payload = {
+            "data": {
+                "type": "flight-offers-pricing",
+                "flightOffers": [
+                    flight_data
+                ]
+            }
+        }
+
+        return self.request(url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value, payload=payload)
