@@ -1,6 +1,11 @@
 from enum import Enum
 
 
+class RequestMethod(Enum):
+    POST = "POST"
+    GET = "GET"
+
+
 class Currency(Enum):
     USD = "USD"
     JMD = "JMD"

@@ -5,7 +5,7 @@ from uuid import uuid4
 import requests
 
 from sythonlab_amadeus_enterprise_rest import settings
-from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod
+from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod, RequestMethod
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
     ReservePax
 from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
@@ -58,10 +58,14 @@ class FlightSDK:
 
         return headers
 
-    def request(self, *, url: str, payload: Any, headers: Optional[dict] = None, use_json: bool = True):
-        """Make a POST request to the specified URL with the given payload and headers."""
+    def request(self, *, url: str, payload: Any = None, headers: Optional[dict] = None, use_json: bool = True,
+                method: RequestMethod = RequestMethod.POST):
+        """Make an HTTP request to the specified URL with the given payload and headers."""
 
         headers = self.build_headers(headers, use_json=use_json)
+
+        if not payload:
+            payload = {}
 
         if self.debug:
             print('-' * 100)
@@ -69,10 +73,15 @@ class FlightSDK:
             print('Headers:', headers)
             print("Payload:", payload)
 
-        if use_json:
-            response = requests.post(url, json=payload, headers=headers)
+        if method == RequestMethod.POST:
+            if use_json:
+                response = requests.post(url, json=payload, headers=headers)
+            else:
+                response = requests.post(url, data=payload, headers=headers)
+        elif method == RequestMethod.GET:
+            response = requests.get(url, params=payload, headers=headers)
         else:
-            response = requests.post(url, data=payload, headers=headers)
+            raise ValueError("Unsupported request method")
 
         if self.debug:
             print("Response status:", response.status_code)
@@ -160,7 +169,28 @@ class FlightSDK:
 
         return self.request(url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value, payload=payload)
 
+    def retrieve_by_locator(self, *, locator: str):
+        """Retrieve a reservation by its locator code."""
+
+        self.login()
+
+        return self.request(
+            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_RESERVE_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
+            method=RequestMethod.GET
+        )
+
+    def retrieve_by_booking_id(self, *, booking_id: str):
+        """Retrieve a reservation by its booking ID."""
+
+        self.login()
+
+        return self.request(
+            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_RESERVE_BY_ID_ENDPOINT.value}/{booking_id}",
+            method=RequestMethod.GET
+        )
+
     def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax]):
+        """Reserve a flight based on the provided pricing data, payment method, and traveler information."""
 
         self.login()
 

@@ -10,3 +10,5 @@ class FlightEndpoints(Enum):
     FLIGHT_AVAILABILITY_ENDPOINT = f"{FLIGHT_URL_BASE}/v2/shopping/flight-offers"
     FLIGHT_PRICING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/shopping/flight-offers/pricing"
     FLIGHT_RESERVE_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
+    FLIGHT_RETRIEVE_RESERVE_BY_LOCATOR_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders/by-reference?originSystemCode=GDS"
+    FLIGHT_RETRIEVE_RESERVE_BY_ID_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
