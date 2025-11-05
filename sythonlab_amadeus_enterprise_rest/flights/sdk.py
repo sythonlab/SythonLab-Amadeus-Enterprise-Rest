@@ -88,7 +88,7 @@ class FlightSDK:
         if method == RequestMethod.DELETE and response.status_code == 204:
             print("Response status:", response.status_code)
             return response.status_code, {}
-        
+
         if self.debug:
             print("Response status:", response.status_code)
             try:
@@ -193,6 +193,15 @@ class FlightSDK:
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT.value}/{booking_id}",
             method=RequestMethod.GET
+        )
+
+    def issue_booking(self, *, booking_id: str):
+        """Issue a reservation by its booking ID."""
+
+        self.login()
+
+        return self.request(
+            url=f"{FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT.value}/{booking_id}/issuance",
         )
 
     def cancel_booking(self, *, booking_id: str):

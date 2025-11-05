@@ -13,3 +13,4 @@ class FlightEndpoints(Enum):
     FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders/by-reference?originSystemCode=GDS"
     FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
     FLIGHT_CANCEL_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
+    FLIGHT_ISSUE_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
