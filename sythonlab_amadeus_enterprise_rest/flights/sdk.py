@@ -5,8 +5,9 @@ from uuid import uuid4
 import requests
 
 from sythonlab_amadeus_enterprise_rest import settings
-from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType
-from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax
+from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod
+from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
+    ReservePax
 from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
 
 
@@ -107,10 +108,10 @@ class FlightSDK:
             "originDestinations": [
                 {
                     "id": route.id,
-                    "originLocationCode": route.originLocationCode,
-                    "destinationLocationCode": route.destinationLocationCode,
+                    "originLocationCode": route.origin_location_code,
+                    "destinationLocationCode": route.destination_location_code,
                     "departureDateTimeRange": {
-                        "date": route.departureDateTimeRange
+                        "date": route.departure_date
                     }
                 }
                 for route in itinerary
@@ -118,11 +119,11 @@ class FlightSDK:
             "travelers": [
                 {
                     "id": pax.id,
-                    "travelerType": pax.travelerType.value,
+                    "travelerType": pax.traveler_type.value,
                     "fareOptions": [
                         "STANDARD"
                     ],
-                    **({"associatedAdultId": "1"} if pax.travelerType == TravelerType.INFANT else {})
+                    **({"associatedAdultId": "1"} if pax.traveler_type == TravelerType.INFANT else {})
                 }
                 for pax in travelers
             ],
@@ -158,3 +159,65 @@ class FlightSDK:
         }
 
         return self.request(url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value, payload=payload)
+
+    def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax]):
+
+        self.login()
+
+        payments = []
+
+        if payment_method == PaymentMethod.CASH:
+            payments = [{
+                "other": {
+                    "method": "CASH",
+                    "flightOfferIds": [
+                        pricing_data.get("id")
+                    ]
+                }
+            }]
+
+        payload = {
+            "data": {
+                "type": "flight-order",
+                "flightOffers": [
+                    pricing_data
+                ],
+                "travelers": [
+                    {
+                        "id": traveler.id,
+                        "dateOfBirth": traveler.date_of_birth,
+                        "name": {
+                            "firstName": traveler.first_name,
+                            "lastName": traveler.last_name
+                        },
+                        "gender": traveler.gender.value,
+                        "contact": {
+                            "emailAddress": traveler.email,
+                            "phones": [
+                                {
+                                    "deviceType": "MOBILE",
+                                    "countryCallingCode": traveler.phone_country_code,
+                                    "number": traveler.phone_number
+                                }
+                            ]
+                        },
+                        "documents": [
+                            {
+                                "documentType": traveler.document_type.value,
+                                "number": traveler.document_number,
+                                "issuanceDate": traveler.document_issuance_date,
+                                "expiryDate": traveler.document_expiry_date,
+                                "issuanceCountry": traveler.document_issuance_country_code,
+                                "nationality": traveler.nationality_code,
+                                "holder": True
+                            }
+                        ]
+                    } for traveler in travelers
+                ],
+                "formOfPayments": [
+                    *payments
+                ]
+            }
+        }
+
+        return self.request(url=FlightEndpoints.FLIGHT_RESERVE_ENDPOINT.value, payload=payload)
