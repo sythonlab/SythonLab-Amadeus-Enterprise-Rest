@@ -80,9 +80,15 @@ class FlightSDK:
                 response = requests.post(url, data=payload, headers=headers)
         elif method == RequestMethod.GET:
             response = requests.get(url, params=payload, headers=headers)
+        elif method == RequestMethod.DELETE:
+            response = requests.delete(url, params=payload, headers=headers)
         else:
             raise ValueError("Unsupported request method")
 
+        if method == RequestMethod.DELETE and response.status_code == 204:
+            print("Response status:", response.status_code)
+            return response.status_code, {}
+        
         if self.debug:
             print("Response status:", response.status_code)
             try:
@@ -175,7 +181,7 @@ class FlightSDK:
         self.login()
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_RESERVE_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
+            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
             method=RequestMethod.GET
         )
 
@@ -185,8 +191,18 @@ class FlightSDK:
         self.login()
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_RESERVE_BY_ID_ENDPOINT.value}/{booking_id}",
+            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT.value}/{booking_id}",
             method=RequestMethod.GET
+        )
+
+    def cancel_booking(self, *, booking_id: str):
+        """Cancel a reservation by its booking ID."""
+
+        self.login()
+
+        return self.request(
+            url=f"{FlightEndpoints.FLIGHT_CANCEL_BOOKING_ENDPOINT.value}/{booking_id}",
+            method=RequestMethod.DELETE
         )
 
     def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax]):

@@ -4,6 +4,7 @@ from enum import Enum
 class RequestMethod(Enum):
     POST = "POST"
     GET = "GET"
+    DELETE = "DELETE"
 
 
 class Currency(Enum):
