@@ -14,7 +14,7 @@ availability_status, availability_data = sdk.search_availability(itinerary=[
     SearchAvailabilityPax(id="1", traveler_type=TravelerType.ADULT),
     SearchAvailabilityPax(id="2", traveler_type=TravelerType.CHILD),
     SearchAvailabilityPax(id="3", traveler_type=TravelerType.INFANT),
-], only_carriers=['AZ'])
+])
 
 if availability_status == 200:
     pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0])

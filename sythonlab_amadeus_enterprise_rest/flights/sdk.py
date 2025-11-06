@@ -45,7 +45,7 @@ class FlightSDK:
             return self.auth_data.get('access_token')
         return None
 
-    def build_headers(self, headers: Optional[Any] = None, use_json: bool = True):
+    def build_headers(self, headers: Optional[Any] = None, use_json: bool = True, no_auth: bool = False):
         """Build request headers, adding Content-Type and Authorization if not provided."""
 
         if not headers:
@@ -54,7 +54,7 @@ class FlightSDK:
         if not headers.get('Content-Type'):
             headers['Content-Type'] = 'application/json' if use_json else 'application/x-www-form-urlencoded'
 
-        if not headers.get('Authorization') and self.access_token:
+        if not no_auth and not headers.get('Authorization') and self.access_token:
             headers['Authorization'] = f"Bearer {self.access_token}"
 
         if self.ama_ref:
@@ -63,10 +63,10 @@ class FlightSDK:
         return headers
 
     def request(self, *, url: str, payload: Any = None, headers: Optional[dict] = None, use_json: bool = True,
-                method: RequestMethod = RequestMethod.POST):
+                method: RequestMethod = RequestMethod.POST, no_auth: bool = False):
         """Make an HTTP request to the specified URL with the given payload and headers."""
 
-        headers = self.build_headers(headers, use_json=use_json)
+        headers = self.build_headers(headers, use_json=use_json, no_auth=no_auth)
 
         if not payload:
             payload = {}
@@ -111,7 +111,8 @@ class FlightSDK:
             "client_secret": settings.AMADEUS_CONFIG.get('CLIENT_SECRET'),
         }
 
-        status, data = self.request(url=FlightEndpoints.FLIGHT_LOGIN_ENDPOINT.value, payload=payload, use_json=False)
+        status, data = self.request(url=FlightEndpoints.FLIGHT_LOGIN_ENDPOINT.value, payload=payload, use_json=False,
+                                    no_auth=True)
 
         if status == 200:
             self.auth_data = data
