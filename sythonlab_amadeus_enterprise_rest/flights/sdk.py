@@ -113,10 +113,21 @@ class FlightSDK:
             self.auth_data = data
 
     def search_availability(self, *, itinerary: List[SearchAvailabilityItinerary],
-                            travelers: List[SearchAvailabilityPax]):
+                            travelers: List[SearchAvailabilityPax], only_carriers: Optional[List[str]] = None):
         """Search for flight availability based on the provided itinerary and travelers."""
 
         self.login()
+
+        filters = {}
+
+        if only_carriers:
+            filters = {
+                "flightFilters": {
+                    "carrierRestrictions": {
+                        "includedCarrierCodes": only_carriers
+                    }
+                }
+            }
 
         payload = {
             "currencyCode": self.currency.value,
@@ -153,7 +164,8 @@ class FlightSDK:
                 },
                 "additionalInformation": {
                     "brandedFares": True
-                }
+                },
+                **filters
             }
         }
 
