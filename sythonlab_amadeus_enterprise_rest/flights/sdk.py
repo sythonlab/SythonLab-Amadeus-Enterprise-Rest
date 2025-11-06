@@ -12,6 +12,8 @@ from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
 
 
 class FlightSDK:
+    """SDK for interacting with Amadeus Enterprise REST Flight APIs."""
+
     ama_ref = None
     prefix_ama_ref = ""
     suffix_ama_ref = ""
@@ -31,6 +33,8 @@ class FlightSDK:
             self.ama_ref = ama_ref
 
     def build_ama_ref(self):
+        """Generate a unique ama-client-ref for tracking requests."""
+
         return f"{self.prefix_ama_ref}/{datetime.now().timestamp()}/{str(uuid4())}/{self.suffix_ama_ref}"
 
     @property

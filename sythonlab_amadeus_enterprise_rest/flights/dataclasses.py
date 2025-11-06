@@ -5,6 +5,8 @@ from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, D
 
 @dataclass
 class SearchAvailabilityItinerary:
+    """Dataclass for search availability itinerary."""
+
     id: str
     origin_location_code: str
     destination_location_code: str
@@ -13,12 +15,16 @@ class SearchAvailabilityItinerary:
 
 @dataclass
 class SearchAvailabilityPax:
+    """Dataclass for search availability passenger."""
+
     id: str
     traveler_type: TravelerType
 
 
 @dataclass
 class ReservePax:
+    """Dataclass for reserve passenger."""
+    
     id: str
     date_of_birth: str
     first_name: str
