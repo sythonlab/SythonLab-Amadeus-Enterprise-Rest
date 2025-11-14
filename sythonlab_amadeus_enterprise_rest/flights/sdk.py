@@ -5,7 +5,8 @@ from uuid import uuid4
 import requests
 
 from sythonlab_amadeus_enterprise_rest import settings
-from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod, RequestMethod
+from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod, RequestMethod, \
+    CommissionType
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
     ReservePax
 from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
@@ -82,6 +83,8 @@ class FlightSDK:
                 response = requests.post(url, json=payload, headers=headers)
             else:
                 response = requests.post(url, data=payload, headers=headers)
+        elif method == RequestMethod.PATCH:
+            response = requests.patch(url, json=payload, headers=headers)
         elif method == RequestMethod.GET:
             response = requests.get(url, params=payload, headers=headers)
         elif method == RequestMethod.DELETE:
@@ -229,6 +232,34 @@ class FlightSDK:
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_CANCEL_BOOKING_ENDPOINT.value}/{booking_id}",
             method=RequestMethod.DELETE
+        )
+
+    def fm_commission_booking(self, *, booking_id: str, commission_type: CommissionType, value: float):
+        """Add a commission to a reservation by its booking ID."""
+        
+        self.login()
+
+        return self.request(
+            url=f"{FlightEndpoints.FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT.value}/{booking_id}",
+            method=RequestMethod.PATCH,
+            payload={
+                "data": {
+                    "type": "flight-order",
+                    "commissions": [
+                        {
+                            "controls": [
+                                "MANUAL"
+                            ],
+                            "values": [
+                                {
+                                    "commissionType": "NEW",
+                                    **{commission_type.value: value}
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
         )
 
     def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax]):

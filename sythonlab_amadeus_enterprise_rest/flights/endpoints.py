@@ -16,3 +16,4 @@ class FlightEndpoints(Enum):
     FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
     FLIGHT_CANCEL_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
     FLIGHT_ISSUE_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
+    FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"

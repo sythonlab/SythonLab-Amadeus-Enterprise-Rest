@@ -7,6 +7,7 @@ class RequestMethod(Enum):
     POST = "POST"
     GET = "GET"
     DELETE = "DELETE"
+    PATCH = "PATCH"
 
 
 class Currency(Enum):
@@ -32,11 +33,19 @@ class PaymentMethod(Enum):
 
 class Gender(Enum):
     """Represents gender"""
+
     MALE = "MALE"
     FEMALE = "FEMALE"
 
 
 class DocumentType(Enum):
     """Represents different document types."""
-    
+
     PASSPORT = "PASSPORT"
+
+
+class CommissionType(Enum):
+    """Represents different commission types."""
+
+    AMOUNT = "amount"
+    PERCENTAGE = "percentage"
