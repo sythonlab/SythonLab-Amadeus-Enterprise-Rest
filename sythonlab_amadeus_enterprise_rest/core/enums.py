@@ -29,6 +29,7 @@ class PaymentMethod(Enum):
     """Represents different payment methods."""
 
     CASH = "CASH"
+    CREDIT_CARD = "CREDIT_CARD"
 
 
 class Gender(Enum):

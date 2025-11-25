@@ -236,7 +236,7 @@ class FlightSDK:
 
     def fm_commission_booking(self, *, booking_id: str, commission_type: CommissionType, value: float):
         """Add a commission to a reservation by its booking ID."""
-        
+
         self.login()
 
         return self.request(
@@ -273,6 +273,19 @@ class FlightSDK:
             payments = [{
                 "other": {
                     "method": "CASH",
+                    "flightOfferIds": [
+                        pricing_data.get("id")
+                    ]
+                }
+            }]
+        elif payment_method == PaymentMethod.CREDIT_CARD:
+            payments = [{
+                "creditCard": {
+                    "brand": "VISA",
+                    "holder": "CORPORATE",
+                    "number": "4111111111111111",
+                    "expiryDate": "2030-03",
+                    # "securityCode": "737",
                     "flightOfferIds": [
                         pricing_data.get("id")
                     ]
