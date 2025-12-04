@@ -1,4 +1,13 @@
-from datetime import datetime
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+File: sdk.py
+Author: Sython Lab (sythonlab@gmail.com)
+Created: 2025-12-04
+"""
+
+import logging
+from datetime import datetime, timezone
 from typing import List, Any, Optional
 from uuid import uuid4
 
@@ -10,6 +19,8 @@ from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType,
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
     ReservePax
 from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
+
+logger = logging.getLogger(__name__)
 
 
 class FlightSDK:
@@ -24,26 +35,27 @@ class FlightSDK:
 
     def __init__(self, *, prefix_ama_ref: str = "", suffix_ama_ref: str = "", currency: Currency = Currency.USD,
                  debug: bool = False, ama_ref: str = None):
+        """Initialize the FlightSDK with optional parameters."""
+
         self.currency = currency
         self.debug = debug
         self.prefix_ama_ref = prefix_ama_ref
         self.suffix_ama_ref = suffix_ama_ref
-        if not ama_ref:
-            self.ama_ref = self.build_ama_ref()
-        else:
-            self.ama_ref = ama_ref
 
     def build_ama_ref(self):
         """Generate a unique ama-client-ref for tracking requests."""
 
-        return f"{self.prefix_ama_ref}/{datetime.now().timestamp()}/{str(uuid4())}/{self.suffix_ama_ref}"
+        now = datetime.now(timezone.utc)
+        iso = now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+        return f"{self.prefix_ama_ref}/{iso}/{str(uuid4())}/{self.suffix_ama_ref}"
 
     @property
     def access_token(self):
         """Retrieve the access token from auth_data if available."""
 
         if self.auth_data:
-            return self.auth_data.get('access_token')
+            return self.auth_data.get("access_token")
         return None
 
     def build_headers(self, headers: Optional[Any] = None, use_json: bool = True, no_auth: bool = False):
@@ -52,14 +64,13 @@ class FlightSDK:
         if not headers:
             headers = {}
 
-        if not headers.get('Content-Type'):
-            headers['Content-Type'] = 'application/json' if use_json else 'application/x-www-form-urlencoded'
+        if not headers.get("Content-Type"):
+            headers["Content-Type"] = "application/json" if use_json else "application/x-www-form-urlencoded"
 
-        if not no_auth and not headers.get('Authorization') and self.access_token:
-            headers['Authorization'] = f"Bearer {self.access_token}"
+        if not no_auth and not headers.get("Authorization") and self.access_token:
+            headers["Authorization"] = f"Bearer {self.access_token}"
 
-        if self.ama_ref:
-            headers['ama-client-ref'] = self.ama_ref
+        headers["ama-client-ref"] = self.build_ama_ref()
 
         return headers
 
@@ -73,10 +84,10 @@ class FlightSDK:
             payload = {}
 
         if self.debug:
-            print('-' * 100)
-            print("URL:", url)
-            print('Headers:', headers)
-            print("Payload:", payload)
+            logger.debug("-" * 100)
+            logger.debug("URL: %s", url)
+            logger.debug("Headers: %s", headers)
+            logger.debug("Payload: %s", payload)
 
         if method == RequestMethod.POST:
             if use_json:
@@ -92,16 +103,16 @@ class FlightSDK:
         else:
             raise ValueError("Unsupported request method")
 
-        if method == RequestMethod.DELETE and response.status_code == 204:
-            print("Response status:", response.status_code)
-            return response.status_code, {}
-
         if self.debug:
-            print("Response status:", response.status_code)
+            logger.debug("-" * 100)
+            logger.debug("Response status: %s", response.status_code)
             try:
-                print("Response data:", response.json())
+                logger.debug("Response data: %s", response.json())
             except Exception:
-                print("Response raw data:", response.text)
+                logger.debug("Response raw data: %s", response.text)
+
+        if method == RequestMethod.DELETE and response.status_code == 204:
+            return response.status_code, {}
 
         return response.status_code, response.json()
 
@@ -110,8 +121,8 @@ class FlightSDK:
 
         payload = {
             "grant_type": "client_credentials",
-            "client_id": settings.AMADEUS_CONFIG.get('CLIENT_ID'),
-            "client_secret": settings.AMADEUS_CONFIG.get('CLIENT_SECRET'),
+            "client_id": settings.AMADEUS_CONFIG.get("CLIENT_ID"),
+            "client_secret": settings.AMADEUS_CONFIG.get("CLIENT_SECRET"),
         }
 
         status, data = self.request(url=FlightEndpoints.FLIGHT_LOGIN_ENDPOINT.value, payload=payload, use_json=False,

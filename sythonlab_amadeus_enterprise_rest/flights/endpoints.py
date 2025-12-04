@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+File: endpoints.py
+Author: Sython Lab (sythonlab@gmail.com)
+Created: 2025-12-04
+"""
+
 from enum import Enum
 
 from sythonlab_amadeus_enterprise_rest import settings
 
-FLIGHT_URL_BASE = settings.AMADEUS_CONFIG.get('API_URL')
+FLIGHT_URL_BASE = settings.AMADEUS_CONFIG.get("API_URL")
 
 
 class FlightEndpoints(Enum):

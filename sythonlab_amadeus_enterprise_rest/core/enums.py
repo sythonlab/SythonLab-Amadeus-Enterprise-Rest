@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+File: enums.py
+Author: Sython Lab (sythonlab@gmail.com)
+Created: 2025-12-04
+"""
+
 from enum import Enum
 
 

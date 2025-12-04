@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+File: dataclasses.py
+Author: Sython Lab (sythonlab@gmail.com)
+Created: 2025-12-04
+"""
+
 from dataclasses import dataclass
 
 from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, DocumentType
@@ -24,7 +32,7 @@ class SearchAvailabilityPax:
 @dataclass
 class ReservePax:
     """Dataclass for reserve passenger."""
-    
+
     id: str
     date_of_birth: str
     first_name: str
