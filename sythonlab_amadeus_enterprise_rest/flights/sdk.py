@@ -15,9 +15,9 @@ import requests
 
 from sythonlab_amadeus_enterprise_rest import settings
 from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod, RequestMethod, \
-    CommissionType
+    CommissionType, CardBrand
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
-    ReservePax
+    ReservePax, PaymentData
 from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
 
 logger = logging.getLogger(__name__)
@@ -190,17 +190,28 @@ class FlightSDK:
 
         return self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload)
 
-    def pricing(self, *, flight_data: Any):
+    def pricing(self, *, flight_data: Any, payment_method: PaymentMethod, card_brand: Optional[CardBrand] = None):
         """Payload should be the flight offers obtained from search_availability method."""
 
         self.login()
+
+        extra = {}
+
+        if payment_method == PaymentMethod.CREDIT_CARD:
+            extra.update({
+                "payments": [{
+                    "brand": card_brand.value,
+                    "flightOfferIds": [flight_data.get("id")]
+                }]
+            })
 
         payload = {
             "data": {
                 "type": "flight-offers-pricing",
                 "flightOffers": [
                     flight_data
-                ]
+                ],
+                **extra
             }
         }
 
@@ -273,35 +284,37 @@ class FlightSDK:
             }
         )
 
-    def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax]):
+    def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax],
+                payment_data: Optional[PaymentData] = None):
         """Reserve a flight based on the provided pricing data, payment method, and traveler information."""
 
         self.login()
 
         payments = []
 
-        if payment_method == PaymentMethod.CASH:
-            payments = [{
-                "other": {
-                    "method": "CASH",
-                    "flightOfferIds": [
-                        pricing_data.get("id")
-                    ]
-                }
-            }]
-        elif payment_method == PaymentMethod.CREDIT_CARD:
-            payments = [{
-                "creditCard": {
-                    "brand": "VISA",
-                    "holder": "CORPORATE",
-                    "number": "4111111111111111",
-                    "expiryDate": "2030-03",
-                    # "securityCode": "737",
-                    "flightOfferIds": [
-                        pricing_data.get("id")
-                    ]
-                }
-            }]
+        match payment_method:
+            case PaymentMethod.CASH:
+                payments = [{
+                    "other": {
+                        "method": "CASH",
+                        "flightOfferIds": [
+                            pricing_data.get("id")
+                        ]
+                    }
+                }]
+            case PaymentMethod.CREDIT_CARD:
+                payments = [{
+                    "creditCard": {
+                        "brand": payment_data.brand.value,
+                        "holder": payment_data.holder,
+                        "number": payment_data.number,
+                        "expiryDate": payment_data.expiry_date,
+                        "securityCode": payment_data.security_code,
+                        "flightOfferIds": [
+                            pricing_data.get("id")
+                        ]
+                    }
+                }]
 
         payload = {
             "data": {

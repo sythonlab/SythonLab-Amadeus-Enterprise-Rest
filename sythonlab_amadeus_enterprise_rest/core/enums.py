@@ -40,6 +40,13 @@ class PaymentMethod(Enum):
     CREDIT_CARD = "CREDIT_CARD"
 
 
+class CardBrand(Enum):
+    """Represents different card brands."""
+
+    VISA = "VISA"
+    MASTERCARD = "MASTERCARD"
+
+
 class Gender(Enum):
     """Represents gender"""
 

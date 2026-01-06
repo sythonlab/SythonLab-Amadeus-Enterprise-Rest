@@ -7,8 +7,9 @@ Created: 2025-12-04
 """
 
 from dataclasses import dataclass
+from typing import Optional
 
-from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, DocumentType
+from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, DocumentType, CardBrand
 
 
 @dataclass
@@ -47,3 +48,14 @@ class ReservePax:
     document_expiry_date: str
     document_issuance_country_code: str
     nationality_code: str
+
+
+@dataclass
+class PaymentData:
+    """Dataclass for card payment data."""
+
+    brand: Optional[CardBrand] = None
+    holder: Optional[str] = None
+    number: Optional[str] = None
+    expiry_date: Optional[str] = None
+    security_code: Optional[str] = None

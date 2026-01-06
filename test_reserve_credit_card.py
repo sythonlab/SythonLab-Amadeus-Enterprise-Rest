@@ -1,6 +1,7 @@
-from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Currency, PaymentMethod, Gender, DocumentType
+from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Currency, PaymentMethod, Gender, DocumentType, \
+    CardBrand
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
-    ReservePax
+    ReservePax, PaymentData
 from sythonlab_amadeus_enterprise_rest.flights.sdk import FlightSDK
 
 sdk = FlightSDK(debug=True, prefix_ama_ref="CLT", suffix_ama_ref="user1", currency=Currency.JMD)
@@ -17,12 +18,20 @@ availability_status, availability_data = sdk.search_availability(itinerary=[
 ])
 
 if availability_status == 200:
-    pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0])
+    pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0],
+                                               payment_method=PaymentMethod.CREDIT_CARD, card_brand=CardBrand.VISA)
 
     if pricing_status == 200:
         reserve_status, reserve_data = sdk.reserve(
             pricing_data=pricing_data["data"]["flightOffers"][0],
             payment_method=PaymentMethod.CREDIT_CARD,
+            payment_data=PaymentData(
+                brand=CardBrand.VISA,
+                holder="CORPORATE",
+                number="4111111111111111",
+                expiry_date="2030-03",
+                security_code="737",
+            ),
             travelers=[
                 ReservePax(id="1", date_of_birth="1992-12-28", first_name="Jose Angel", last_name="Alvarez Abraira",
                            gender=Gender.MALE, email="jaalvarez2818@gmail.com", phone_country_code="34",

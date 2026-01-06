@@ -17,7 +17,8 @@ availability_status, availability_data = sdk.search_availability(itinerary=[
 ])
 
 if availability_status == 200:
-    pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0])
+    pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0],
+                                               payment_method=PaymentMethod.CASH)
 
     if pricing_status == 200:
         reserve_status, reserve_data = sdk.reserve(
