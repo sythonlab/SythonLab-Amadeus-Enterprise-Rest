@@ -7,15 +7,15 @@ from sythonlab_amadeus_enterprise_rest.flights.sdk import FlightSDK
 sdk = FlightSDK(debug=True, prefix_ama_ref="CLT", suffix_ama_ref="user1", currency=Currency.JMD)
 
 availability_status, availability_data = sdk.search_availability(itinerary=[
-    SearchAvailabilityItinerary(id="1", origin_location_code="KIN", destination_location_code="MIA",
+    SearchAvailabilityItinerary(id="1", origin_location_code="BOG", destination_location_code="MIA",
                                 departure_date="2026-02-10"),
-    SearchAvailabilityItinerary(id="2", origin_location_code="MIA", destination_location_code="KIN",
+    SearchAvailabilityItinerary(id="2", origin_location_code="MIA", destination_location_code="BOG",
                                 departure_date="2026-02-20")
 ], travelers=[
     SearchAvailabilityPax(id="1", traveler_type=TravelerType.ADULT),
     # SearchAvailabilityPax(id="2", traveler_type=TravelerType.CHILD),
     # SearchAvailabilityPax(id="3", traveler_type=TravelerType.INFANT),
-])
+], only_carriers=["CM"])
 
 if availability_status == 200:
     pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0],
@@ -28,7 +28,7 @@ if availability_status == 200:
             payment_data=PaymentData(
                 brand=CardBrand.VISA,
                 holder="CORPORATE",
-                number="4111111111111111",
+                number="4000000000000002",
                 expiry_date="2030-03",
                 security_code="737",
             ),

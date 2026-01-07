@@ -1,7 +1,7 @@
 from sythonlab_amadeus_enterprise_rest.core.enums import Currency, CommissionType
 from sythonlab_amadeus_enterprise_rest.flights.sdk import FlightSDK
 
-LOCATOR = "BR4AGJ"
+LOCATOR = "BR4KQI"
 
 sdk = FlightSDK(debug=True, prefix_ama_ref="CLT", suffix_ama_ref="user1", currency=Currency.JMD)
 
