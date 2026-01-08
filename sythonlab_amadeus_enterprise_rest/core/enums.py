@@ -45,6 +45,7 @@ class CardBrand(Enum):
 
     VISA = "VISA"
     MASTERCARD = "MASTERCARD"
+    AMERICAN_EXPRESS = "AMERICAN_EXPRESS"
 
 
 class Gender(Enum):

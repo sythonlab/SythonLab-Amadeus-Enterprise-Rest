@@ -18,19 +18,21 @@ availability_status, availability_data = sdk.search_availability(itinerary=[
 ], only_carriers=["CM"])
 
 if availability_status == 200:
-    pricing_status, pricing_data = sdk.pricing(flight_data=availability_data["data"][0],
-                                               payment_method=PaymentMethod.CREDIT_CARD, card_brand=CardBrand.VISA)
+    pricing_status, pricing_data = sdk.pricing(
+        flight_data=availability_data["data"][0], payment_method=PaymentMethod.CREDIT_CARD,
+        card_brand=CardBrand.AMERICAN_EXPRESS
+    )
 
     if pricing_status == 200:
         reserve_status, reserve_data = sdk.reserve(
             pricing_data=pricing_data["data"]["flightOffers"][0],
             payment_method=PaymentMethod.CREDIT_CARD,
             payment_data=PaymentData(
-                brand=CardBrand.VISA,
+                brand=CardBrand.AMERICAN_EXPRESS,
                 holder="CORPORATE",
-                number="4000000000000002",
+                number="370000000000002",
                 expiry_date="2030-03",
-                security_code="737",
+                security_code="1234",
             ),
             travelers=[
                 ReservePax(id="1", date_of_birth="1992-12-28", first_name="Jose Angel", last_name="Alvarez Abraira",
