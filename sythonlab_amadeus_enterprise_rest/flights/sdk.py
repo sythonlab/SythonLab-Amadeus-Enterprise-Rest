@@ -90,7 +90,7 @@ class FlightSDK:
             logger.debug("URL: %s", url)
             logger.debug("Headers: %s", headers)
             logger.debug("Payload: %s", payload)
-            logger.debug("Start time: %s", start.strftime("%Y-%m-%dT%H:%M:%S"))
+            logger.debug("Start time: %s", start.strftime("%d/%m/%Y %H:%M:%S"))
 
         if method == RequestMethod.POST:
             if use_json:
@@ -110,7 +110,7 @@ class FlightSDK:
             end = datetime.now(timezone.utc)
 
             logger.debug("-" * 100)
-            logger.debug("End time: %s", end.strftime("%Y-%m-%dT%H:%M:%S"))
+            logger.debug("End time: %s", end.strftime("%d/%m/%Y %H:%M:%S"))
             logger.debug("Duration: %s", end - start)
             logger.debug("Response status: %s", response.status_code)
             # try:
