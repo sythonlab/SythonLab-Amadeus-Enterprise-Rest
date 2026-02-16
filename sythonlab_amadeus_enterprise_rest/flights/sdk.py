@@ -113,10 +113,10 @@ class FlightSDK:
             logger.debug("End time: %s", end.isoformat())
             logger.debug("Duration: %s", end - start)
             logger.debug("Response status: %s", response.status_code)
-            try:
-                logger.debug("Response data: %s", response.json())
-            except Exception:
-                logger.debug("Response raw data: %s", response.text)
+            # try:
+            #     logger.debug("Response data: %s", response.json())
+            # except Exception:
+            #     logger.debug("Response raw data: %s", response.text)
 
         if method == RequestMethod.DELETE and response.status_code == 204:
             return response.status_code, {}
