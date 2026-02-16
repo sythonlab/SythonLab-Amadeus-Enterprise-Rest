@@ -83,11 +83,14 @@ class FlightSDK:
         if not payload:
             payload = {}
 
+        start = datetime.now(timezone.utc)
+
         if self.debug:
             logger.debug("-" * 100)
             logger.debug("URL: %s", url)
             logger.debug("Headers: %s", headers)
             logger.debug("Payload: %s", payload)
+            logger.debug("Start time: %s", start.isoformat())
 
         if method == RequestMethod.POST:
             if use_json:
@@ -104,7 +107,11 @@ class FlightSDK:
             raise ValueError("Unsupported request method")
 
         if self.debug:
+            end = datetime.now(timezone.utc)
+
             logger.debug("-" * 100)
+            logger.debug("End time: %s", end.isoformat())
+            logger.debug("Duration: %s", end - start)
             logger.debug("Response status: %s", response.status_code)
             try:
                 logger.debug("Response data: %s", response.json())
