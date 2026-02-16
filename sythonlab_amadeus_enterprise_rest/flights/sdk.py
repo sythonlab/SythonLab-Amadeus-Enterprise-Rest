@@ -197,7 +197,7 @@ class FlightSDK:
             }
         }
 
-        return self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload)
+        return self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload, show_response=True)
 
     def pricing(self, *, flight_data: Any, payment_method: PaymentMethod, card_brand: Optional[CardBrand] = None):
         """Payload should be the flight offers obtained from search_availability method."""
@@ -224,7 +224,7 @@ class FlightSDK:
             }
         }
 
-        return self.request(url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value, payload=payload)
+        return self.request(url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value, payload=payload, show_response=True)
 
     def retrieve_by_locator(self, *, locator: str):
         """Retrieve a reservation by its locator code."""
