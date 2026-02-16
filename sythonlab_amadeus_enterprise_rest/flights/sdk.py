@@ -75,7 +75,7 @@ class FlightSDK:
         return headers
 
     def request(self, *, url: str, payload: Any = None, headers: Optional[dict] = None, use_json: bool = True,
-                method: RequestMethod = RequestMethod.POST, no_auth: bool = False):
+                method: RequestMethod = RequestMethod.POST, no_auth: bool = False, show_response: bool = False):
         """Make an HTTP request to the specified URL with the given payload and headers."""
 
         headers = self.build_headers(headers, use_json=use_json, no_auth=no_auth)
@@ -88,9 +88,9 @@ class FlightSDK:
         if self.debug:
             logger.debug("-" * 100)
             logger.debug("URL: %s", url)
+            logger.debug("Start time: %s", start.strftime("%d/%m/%Y %H:%M:%S"))
             logger.debug("Headers: %s", headers)
             logger.debug("Payload: %s", payload)
-            logger.debug("Start time: %s", start.strftime("%d/%m/%Y %H:%M:%S"))
 
         if method == RequestMethod.POST:
             if use_json:
@@ -113,10 +113,12 @@ class FlightSDK:
             logger.debug("End time: %s", end.strftime("%d/%m/%Y %H:%M:%S"))
             logger.debug("Duration: %s", end - start)
             logger.debug("Response status: %s", response.status_code)
-            # try:
-            #     logger.debug("Response data: %s", response.json())
-            # except Exception:
-            #     logger.debug("Response raw data: %s", response.text)
+
+            if show_response:
+                try:
+                    logger.debug("Response data: %s", response.json())
+                except Exception:
+                    logger.debug("Response raw data: %s", response.text)
 
         if method == RequestMethod.DELETE and response.status_code == 204:
             return response.status_code, {}
@@ -231,7 +233,8 @@ class FlightSDK:
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
-            method=RequestMethod.GET
+            method=RequestMethod.GET,
+            show_response=True
         )
 
     def retrieve_by_booking_id(self, *, booking_id: str):
@@ -241,7 +244,8 @@ class FlightSDK:
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT.value}/{booking_id}",
-            method=RequestMethod.GET
+            method=RequestMethod.GET,
+            show_response=True
         )
 
     def issue_booking(self, *, booking_id: str):
@@ -251,6 +255,7 @@ class FlightSDK:
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT.value}/{booking_id}/issuance",
+            show_response=True
         )
 
     def cancel_booking(self, *, booking_id: str):
@@ -367,4 +372,4 @@ class FlightSDK:
             }
         }
 
-        return self.request(url=FlightEndpoints.FLIGHT_RESERVE_ENDPOINT.value, payload=payload)
+        return self.request(url=FlightEndpoints.FLIGHT_RESERVE_ENDPOINT.value, payload=payload, show_response=True)
