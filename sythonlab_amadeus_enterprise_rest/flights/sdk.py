@@ -197,7 +197,8 @@ class FlightSDK:
             }
         }
 
-        return self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload, show_response=False)
+        return self.request(url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value, payload=payload,
+                            show_response=False)
 
     def pricing(self, *, flight_data: Any, payment_method: PaymentMethod, card_brand: Optional[CardBrand] = None):
         """Payload should be the flight offers obtained from search_availability method."""
@@ -297,7 +298,7 @@ class FlightSDK:
         )
 
     def reserve(self, *, pricing_data: Any, payment_method: PaymentMethod, travelers: List[ReservePax],
-                payment_data: Optional[PaymentData] = None):
+                payment_data: Optional[PaymentData] = None, issue: Optional[bool] = False):
         """Reserve a flight based on the provided pricing data, payment method, and traveler information."""
 
         self.login()
@@ -372,4 +373,9 @@ class FlightSDK:
             }
         }
 
-        return self.request(url=FlightEndpoints.FLIGHT_RESERVE_ENDPOINT.value, payload=payload, show_response=True)
+        url = FlightEndpoints.FLIGHT_RESERVE_ENDPOINT.value
+
+        if issue:
+            url = f"{url}?issue=true"
+
+        return self.request(url=url, payload=payload, show_response=True)
