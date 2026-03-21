@@ -185,7 +185,7 @@ class FlightSDK:
     ):
         """Search for flight availability based on the provided itinerary and travelers."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         filters = {}
 
@@ -256,7 +256,7 @@ class FlightSDK:
     ):
         """Payload should be the flight offers obtained from search_availability method."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         extra = {}
 
@@ -289,7 +289,7 @@ class FlightSDK:
     def retrieve_by_locator(self, *, locator: str, on_complete: Optional[Callable] = None):
         """Retrieve a reservation by its locator code."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
@@ -302,7 +302,7 @@ class FlightSDK:
     def retrieve_by_booking_id(self, *, booking_id: str, on_complete: Optional[Callable] = None):
         """Retrieve a reservation by its booking ID."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT.value}/{booking_id}",
@@ -315,7 +315,7 @@ class FlightSDK:
     def issue_booking(self, *, booking_id: str, on_complete: Optional[Callable] = None):
         """Issue a reservation by its booking ID."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT.value}/{booking_id}/issuance",
@@ -327,7 +327,7 @@ class FlightSDK:
     def cancel_booking(self, *, booking_id: str, on_complete: Optional[Callable] = None):
         """Cancel a reservation by its booking ID."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_CANCEL_BOOKING_ENDPOINT.value}/{booking_id}",
@@ -346,7 +346,7 @@ class FlightSDK:
     ):
         """Add a commission to a reservation by its booking ID."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT.value}/{booking_id}",
@@ -385,7 +385,7 @@ class FlightSDK:
     ):
         """Reserve a flight based on the provided pricing data, payment method, and traveler information."""
 
-        self.login()
+        self.login(on_complete=on_complete)
 
         payments = []
 
