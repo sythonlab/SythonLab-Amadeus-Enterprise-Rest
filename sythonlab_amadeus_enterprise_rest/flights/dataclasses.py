@@ -7,9 +7,11 @@ Created: 2025-12-04
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from datetime import datetime
+from typing import Optional, Any
 
 from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, DocumentType, CardBrand
+from sythonlab_amadeus_enterprise_rest.flights.enums import FlightResultKind
 
 
 @dataclass
@@ -59,3 +61,18 @@ class PaymentData:
     number: Optional[str] = None
     expiry_date: Optional[str] = None
     security_code: Optional[str] = None
+
+
+@dataclass
+class FlightRequestMetadata:
+    """Dataclass for flight request metadata."""
+    
+    status: int
+    ama_client: str
+    kind: FlightResultKind
+    headers: Any
+    request: Any
+    response: Any
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    duration: Optional[float] = None
