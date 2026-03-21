@@ -19,7 +19,7 @@ AMADEUS_CONFIG = {
     "API_URL": os.getenv("AMADEUS_API_URL"),
     "CLIENT_ID": os.getenv("AMADEUS_CLIENT_ID"),
     "CLIENT_SECRET": os.getenv("AMADEUS_CLIENT_SECRET"),
-    "PRODUCTION": bool(int(os.getenv("PRODUCTION", "0"))),
+    "PRODUCTION": bool(int(os.getenv("AMADEUS_PRODUCTION", "0"))),
 }
 
 import logging
