@@ -476,6 +476,7 @@ class FlightSDK:
             pricing_data: Any,
             on_complete: Optional[Callable] = None
     ):
+        """Upsell branded fares based on the provided pricing data from a previous pricing response."""
 
         self.login(on_complete=on_complete)
 
