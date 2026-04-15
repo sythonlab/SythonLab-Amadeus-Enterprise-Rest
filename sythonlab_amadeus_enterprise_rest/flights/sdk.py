@@ -234,6 +234,9 @@ class FlightSDK:
                 "additionalInformation": {
                     "brandedFares": True
                 },
+                "allowAlternativeFareOptions": True,
+                "maxUpsellOffers": 4,
+                "maxFlightOffers": 250,
                 **filters
             }
         }
@@ -242,7 +245,8 @@ class FlightSDK:
             url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value,
             payload=payload,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_SEARCH
+            kind=FlightResultKind.FLIGHT_SEARCH,
+            show_response=True
         )
 
     def pricing(
