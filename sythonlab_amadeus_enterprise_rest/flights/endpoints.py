@@ -27,3 +27,4 @@ class FlightEndpoints(Enum):
     FLIGHT_ISSUE_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
     FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
     FLIGHT_BRANDED_FARE_UPSELL = f"{FLIGHT_URL_BASE}/v1/shopping/flight-offers/upselling"
+    FLIGHT_QUEUE_LIST = f"{FLIGHT_URL_BASE}/v1/office/queues"

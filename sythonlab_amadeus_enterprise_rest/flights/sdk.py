@@ -241,7 +241,6 @@ class FlightSDK:
         return self.request(
             url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value,
             payload=payload,
-            show_response=False,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_SEARCH
         )
@@ -281,7 +280,6 @@ class FlightSDK:
         return self.request(
             url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value,
             payload=payload,
-            show_response=False,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_PRICING
         )
@@ -294,7 +292,6 @@ class FlightSDK:
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
             method=RequestMethod.GET,
-            show_response=True,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RETRIEVE_BY_PNR
         )
@@ -307,7 +304,6 @@ class FlightSDK:
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT.value}/{booking_id}",
             method=RequestMethod.GET,
-            show_response=True,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RETRIEVE_BY_ID
         )
@@ -319,7 +315,6 @@ class FlightSDK:
 
         return self.request(
             url=f"{FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT.value}/{booking_id}/issuance",
-            show_response=True,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_ISSUE
         )
@@ -465,7 +460,6 @@ class FlightSDK:
         return self.request(
             url=url,
             payload=payload,
-            show_response=True,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RESERVE
         )
@@ -492,9 +486,8 @@ class FlightSDK:
         return self.request(
             url=FlightEndpoints.FLIGHT_BRANDED_FARE_UPSELL.value,
             payload=payload,
-            show_response=True,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_RESERVE
+            kind=FlightResultKind.FLIGHT_BRANDED_FARE_UPSELL
         )
 
     def search_availabilities(
@@ -526,7 +519,7 @@ class FlightSDK:
                     "id": route.id,
                     "originLocationCode": route.origin_location_code,
                     "destinationLocationCode": route.destination_location_code,
-                    "departureDateTimeRange": {
+                    "departureDateTime": {
                         "date": route.departure_date
                     }
                 }
@@ -560,9 +553,26 @@ class FlightSDK:
         }
 
         return self.request(
-            url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value,
+            url=FlightEndpoints.FLIGHT_AVAILABILITIES_ENDPOINT.value,
             payload=payload,
-            show_response=False,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_SEARCH
+            kind=FlightResultKind.FLIGHT_AVAILABILITIES
+        )
+
+    def queue_list(
+            self,
+            *,
+            slug: str,
+            on_complete: Optional[Callable] = None
+    ):
+        """View queue list"""
+        
+        self.login(on_complete=on_complete)
+
+        return self.request(
+            url=f"{FlightEndpoints.FLIGHT_QUEUE_LIST.value}/{slug}",
+            on_complete=on_complete,
+            kind=FlightResultKind.FLIGHT_QUEUE_LIST,
+            method=RequestMethod.GET,
+            show_response=True
         )
