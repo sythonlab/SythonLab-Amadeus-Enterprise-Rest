@@ -566,7 +566,7 @@ class FlightSDK:
             on_complete: Optional[Callable] = None
     ):
         """View queue list"""
-        
+
         self.login(on_complete=on_complete)
 
         return self.request(
