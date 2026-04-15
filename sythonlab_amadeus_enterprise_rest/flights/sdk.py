@@ -573,6 +573,5 @@ class FlightSDK:
             url=f"{FlightEndpoints.FLIGHT_QUEUE_LIST.value}/{slug}",
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_QUEUE_LIST,
-            method=RequestMethod.GET,
-            show_response=True
+            method=RequestMethod.GET
         )
