@@ -496,3 +496,73 @@ class FlightSDK:
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RESERVE
         )
+
+    def search_availabilities(
+            self,
+            *,
+            itinerary: List[SearchAvailabilityItinerary],
+            travelers: List[SearchAvailabilityPax],
+            only_carriers: Optional[List[str]] = None,
+            on_complete: Optional[Callable] = None
+    ):
+        """Search for flight availabilities based on the provided itinerary and travelers."""
+
+        self.login(on_complete=on_complete)
+
+        filters = {}
+
+        if only_carriers:
+            filters = {
+                "flightFilters": {
+                    "carrierRestrictions": {
+                        "includedCarrierCodes": only_carriers
+                    }
+                }
+            }
+
+        payload = {
+            "originDestinations": [
+                {
+                    "id": route.id,
+                    "originLocationCode": route.origin_location_code,
+                    "destinationLocationCode": route.destination_location_code,
+                    "departureDateTimeRange": {
+                        "date": route.departure_date
+                    }
+                }
+                for route in itinerary
+            ],
+            "travelers": [
+                {
+                    "id": pax.id,
+                    "travelerType": pax.traveler_type.value,
+                    "fareOptions": [
+                        "STANDARD"
+                    ],
+                    **({"associatedAdultId": "1"} if pax.traveler_type == TravelerType.INFANT else {})
+                }
+                for pax in travelers
+            ],
+            "sources": [
+                "GDS"
+            ],
+            "searchCriteria": {
+                "pricingOptions": {
+                    "fareType": [
+                        "PUBLISHED"
+                    ]
+                },
+                "additionalInformation": {
+                    "brandedFares": True
+                },
+                **filters
+            }
+        }
+
+        return self.request(
+            url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value,
+            payload=payload,
+            show_response=False,
+            on_complete=on_complete,
+            kind=FlightResultKind.FLIGHT_SEARCH
+        )
