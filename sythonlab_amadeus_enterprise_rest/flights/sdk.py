@@ -469,3 +469,29 @@ class FlightSDK:
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RESERVE
         )
+
+    def branded_fare_upsell(
+            self,
+            *,
+            pricing_data: Any,
+            on_complete: Optional[Callable] = None
+    ):
+
+        self.login(on_complete=on_complete)
+
+        payload = {
+            "data": {
+                "type": "flight-offers-upselling",
+                "flightOffers": [
+                    pricing_data
+                ]
+            }
+        }
+
+        return self.request(
+            url=FlightEndpoints.FLIGHT_BRANDED_FARE_UPSELL.value,
+            payload=payload,
+            show_response=True,
+            on_complete=on_complete,
+            kind=FlightResultKind.FLIGHT_RESERVE
+        )
