@@ -246,7 +246,6 @@ class FlightSDK:
             payload=payload,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_SEARCH,
-            show_response=True
         )
 
     def pricing(
@@ -566,7 +565,8 @@ class FlightSDK:
     def queue_list(
             self,
             *,
-            slug: str,
+            queue: str,
+            category: str,
             on_complete: Optional[Callable] = None
     ):
         """View queue list"""
@@ -574,8 +574,11 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_QUEUE_LIST.value}/{slug}",
+            url=f"{FlightEndpoints.FLIGHT_QUEUE_LIST.value}/{queue}",
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_QUEUE_LIST,
-            method=RequestMethod.GET
+            method=RequestMethod.GET,
+            payload={
+                "category": category
+            }
         )
