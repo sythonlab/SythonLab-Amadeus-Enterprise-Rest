@@ -66,7 +66,7 @@ class PaymentData:
 @dataclass
 class FlightRequestMetadata:
     """Dataclass for flight request metadata."""
-    
+
     status: int
     ama_client: str
     kind: FlightResultKind
@@ -76,3 +76,11 @@ class FlightRequestMetadata:
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     duration: Optional[float] = None
+
+
+@dataclass
+class FlightReserveQueueData:
+    """Dataclass for flight reserve queue data."""
+
+    queue: str
+    category: str

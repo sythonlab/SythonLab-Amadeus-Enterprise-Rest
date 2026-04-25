@@ -17,7 +17,7 @@ from sythonlab_amadeus_enterprise_rest import settings
 from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod, RequestMethod, \
     CommissionType, CardBrand
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
-    ReservePax, PaymentData, FlightRequestMetadata
+    ReservePax, PaymentData, FlightRequestMetadata, FlightReserveQueueData
 from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
 from sythonlab_amadeus_enterprise_rest.flights.enums import FlightResultKind
 
@@ -379,6 +379,7 @@ class FlightSDK:
             travelers: List[ReservePax],
             payment_data: Optional[PaymentData] = None,
             issue: Optional[bool] = False,
+            queue_data: Optional[FlightReserveQueueData] = None,
             on_complete: Optional[Callable] = None
     ):
         """Reserve a flight based on the provided pricing data, payment method, and traveler information."""
@@ -410,6 +411,21 @@ class FlightSDK:
                         ]
                     }
                 }]
+
+        queue_request = {}
+
+        if queue_data:
+            queue_request = {
+                "automatedProcess": [
+                    {
+                        "code": "IMMEDIATE",
+                        "queue": {
+                            "number": queue_data.queue,
+                            "category": queue_data.category,
+                        }
+                    }
+                ]
+            }
 
         payload = {
             "data": {
@@ -451,7 +467,8 @@ class FlightSDK:
                 ],
                 "formOfPayments": [
                     *payments
-                ]
+                ],
+                **queue_request
             }
         }
 
