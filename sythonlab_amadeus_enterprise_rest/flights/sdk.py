@@ -146,6 +146,8 @@ class FlightSDK:
                 kind=kind,
                 headers=headers,
                 request=payload,
+                method=method,
+                url=url,
                 response=data,
                 start_time=start,
                 end_time=end,

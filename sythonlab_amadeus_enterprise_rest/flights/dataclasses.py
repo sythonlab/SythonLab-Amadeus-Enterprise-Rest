@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Any
 
-from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, DocumentType, CardBrand
+from sythonlab_amadeus_enterprise_rest.core.enums import TravelerType, Gender, DocumentType, CardBrand, RequestMethod
 from sythonlab_amadeus_enterprise_rest.flights.enums import FlightResultKind
 
 
@@ -69,6 +69,8 @@ class FlightRequestMetadata:
 
     status: int
     ama_client: str
+    method: RequestMethod
+    url: str
     kind: FlightResultKind
     headers: Any
     request: Any
