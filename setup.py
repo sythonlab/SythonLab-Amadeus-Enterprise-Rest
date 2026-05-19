@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="sythonlab_amadeus_enterprise_rest",
-    version="0.0.9",
+    version="0.0.10",
     packages=find_packages(),
     install_requires=[],
     url="https://github.com/sythonlab/SythonLab-Amadeus-Enterprise-Rest",

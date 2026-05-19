@@ -42,14 +42,16 @@ class FlightSDK:
         self.debug = debug
         self.prefix_ama_ref = prefix_ama_ref
         self.suffix_ama_ref = suffix_ama_ref
+        if ama_ref:
+            self.ama_ref = ama_ref
 
     def build_ama_ref(self):
         """Generate a unique ama-client-ref for tracking requests."""
+        if not self.ama_ref:
+            now = datetime.now(timezone.utc)
+            iso = now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
-        now = datetime.now(timezone.utc)
-        iso = now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-        self.ama_ref = f"{self.prefix_ama_ref}/{iso}/{str(uuid4())}/{self.suffix_ama_ref}"
+            self.ama_ref = f"{self.prefix_ama_ref}/{iso}/{str(uuid4())}/{self.suffix_ama_ref}"
 
         return self.ama_ref
 
