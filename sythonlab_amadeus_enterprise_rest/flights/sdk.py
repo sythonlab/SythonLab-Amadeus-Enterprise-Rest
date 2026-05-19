@@ -45,6 +45,14 @@ class FlightSDK:
         if ama_ref:
             self.ama_ref = ama_ref
 
+    @staticmethod
+    def generate_ama_ref(prefix_ama_ref: str = "", suffix_ama_ref: str = ""):
+        """Generate an Amadeus Enterprise REST Flight API reference."""
+
+        now = datetime.now(timezone.utc)
+        iso = now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+        return f"{prefix_ama_ref}/{iso}/{str(uuid4())}/{suffix_ama_ref}"
+
     def build_ama_ref(self):
         """Generate a unique ama-client-ref for tracking requests."""
         if not self.ama_ref:
