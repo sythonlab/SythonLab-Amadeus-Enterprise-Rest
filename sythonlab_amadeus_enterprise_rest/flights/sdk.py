@@ -7,18 +7,19 @@ Created: 2025-12-04
 """
 
 import logging
+import os
 from datetime import datetime, timezone
 from typing import List, Any, Optional, Callable
 from uuid import uuid4
 
 import requests
 
-from sythonlab_amadeus_enterprise_rest import settings
+from sythonlab_amadeus_enterprise_rest.core.dataclasses import AmadeusConfig
 from sythonlab_amadeus_enterprise_rest.core.enums import Currency, TravelerType, PaymentMethod, RequestMethod, \
     CommissionType, CardBrand
 from sythonlab_amadeus_enterprise_rest.flights.dataclasses import SearchAvailabilityItinerary, SearchAvailabilityPax, \
     ReservePax, PaymentData, FlightRequestMetadata, FlightReserveQueueData
-from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints
+from sythonlab_amadeus_enterprise_rest.flights.endpoints import FlightEndpoints, get_flight_endpoint
 from sythonlab_amadeus_enterprise_rest.flights.enums import FlightResultKind
 
 logger = logging.getLogger(__name__)
@@ -33,9 +34,21 @@ class FlightSDK:
     currency = Currency.USD
     auth_data = None
     debug = False
+    config: Optional[AmadeusConfig] = None
 
-    def __init__(self, *, prefix_ama_ref: str = "", suffix_ama_ref: str = "", currency: Currency = Currency.USD,
-                 debug: bool = False, ama_ref: str = None):
+    def __init__(
+            self,
+            *,
+            prefix_ama_ref: str = "",
+            suffix_ama_ref: str = "",
+            currency: Currency = Currency.USD,
+            debug: bool = False,
+            ama_ref: Optional[str] = None,
+            client_id: Optional[str] = None,
+            client_secret: Optional[str] = None,
+            production: Optional[bool] = False,
+            api_url: Optional[str] = None,
+    ):
         """Initialize the FlightSDK with optional parameters."""
 
         self.currency = currency
@@ -44,6 +57,21 @@ class FlightSDK:
         self.suffix_ama_ref = suffix_ama_ref
         if ama_ref:
             self.ama_ref = ama_ref
+
+        api_url = api_url or os.getenv("AMADEUS_API_URL")
+        client_id = client_id or os.getenv("AMADEUS_CLIENT_ID")
+        client_secret = client_secret or os.getenv("AMADEUS_CLIENT_SECRET")
+        production = production if production is not None else bool(int(os.getenv("AMADEUS_PRODUCTION", "0")))
+
+        if not api_url or not client_id or not client_secret or production is None:
+            raise Exception("API URL, Client ID, Client secret and production are required")
+
+        self.config = AmadeusConfig(
+            api_url=api_url,
+            client_id=client_id,
+            client_secret=client_secret,
+            production=production,
+        )
 
     @staticmethod
     def generate_ama_ref(prefix_ama_ref: str = "", suffix_ama_ref: str = ""):
@@ -168,17 +196,26 @@ class FlightSDK:
 
         return status_code, data
 
+    def get_endpoint(self, endpoint: FlightEndpoints):
+        if not self.config:
+            raise Exception("Flight endpoint not configured")
+
+        return get_flight_endpoint(self.config.api_url, endpoint)
+
     def login(self, *, on_complete: Optional[Callable] = None):
         """Authenticate and obtain an access token."""
 
+        if not self.config:
+            raise Exception("No configuration provided")
+
         payload = {
             "grant_type": "client_credentials",
-            "client_id": settings.AMADEUS_CONFIG.get("CLIENT_ID"),
-            "client_secret": settings.AMADEUS_CONFIG.get("CLIENT_SECRET"),
+            "client_id": self.config.client_id,
+            "client_secret": self.config.client_secret,
         }
 
         status, data = self.request(
-            url=FlightEndpoints.FLIGHT_LOGIN_ENDPOINT.value,
+            url=self.get_endpoint(FlightEndpoints.FLIGHT_LOGIN_ENDPOINT),
             payload=payload,
             use_json=False,
             no_auth=True,
@@ -188,6 +225,29 @@ class FlightSDK:
 
         if status == 200:
             self.auth_data = data
+
+    def check_connection(self, *, on_complete: Optional[Callable] = None):
+        """Check Amadeus connection."""
+
+        if not self.config:
+            raise Exception("No configuration provided")
+
+        payload = {
+            "grant_type": "client_credentials",
+            "client_id": self.config.client_id,
+            "client_secret": self.config.client_secret,
+        }
+
+        status, data = self.request(
+            url=self.get_endpoint(FlightEndpoints.FLIGHT_LOGIN_ENDPOINT),
+            payload=payload,
+            use_json=False,
+            no_auth=True,
+            on_complete=on_complete,
+            kind=FlightResultKind.LOGIN
+        )
+
+        return status == 200
 
     def search_availability(
             self,
@@ -256,7 +316,7 @@ class FlightSDK:
         }
 
         return self.request(
-            url=FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT.value,
+            url=self.get_endpoint(FlightEndpoints.FLIGHT_AVAILABILITY_ENDPOINT),
             payload=payload,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_SEARCH,
@@ -295,7 +355,7 @@ class FlightSDK:
         }
 
         return self.request(
-            url=FlightEndpoints.FLIGHT_PRICING_ENDPOINT.value,
+            url=self.get_endpoint(FlightEndpoints.FLIGHT_PRICING_ENDPOINT),
             payload=payload,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_PRICING
@@ -307,7 +367,7 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT.value}&reference={locator}",
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT)}&reference={locator}",
             method=RequestMethod.GET,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RETRIEVE_BY_PNR
@@ -319,7 +379,7 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT.value}/{booking_id}",
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT)}/{booking_id}",
             method=RequestMethod.GET,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_RETRIEVE_BY_ID
@@ -331,7 +391,7 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT.value}/{booking_id}/issuance",
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT)}/{booking_id}/issuance",
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_ISSUE
         )
@@ -342,7 +402,7 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_CANCEL_BOOKING_ENDPOINT.value}/{booking_id}",
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_CANCEL_BOOKING_ENDPOINT)}/{booking_id}",
             method=RequestMethod.DELETE,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_CANCEL
@@ -361,7 +421,7 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT.value}/{booking_id}",
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT)}/{booking_id}",
             method=RequestMethod.PATCH,
             payload={
                 "data": {
@@ -486,7 +546,7 @@ class FlightSDK:
             }
         }
 
-        url = FlightEndpoints.FLIGHT_RESERVE_ENDPOINT.value
+        url = self.get_endpoint(FlightEndpoints.FLIGHT_RESERVE_ENDPOINT)
 
         if issue:
             url = f"{url}?issue=true"
@@ -518,7 +578,7 @@ class FlightSDK:
         }
 
         return self.request(
-            url=FlightEndpoints.FLIGHT_BRANDED_FARE_UPSELL.value,
+            url=self.get_endpoint(FlightEndpoints.FLIGHT_BRANDED_FARE_UPSELL),
             payload=payload,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_BRANDED_FARE_UPSELL
@@ -587,7 +647,7 @@ class FlightSDK:
         }
 
         return self.request(
-            url=FlightEndpoints.FLIGHT_AVAILABILITIES_ENDPOINT.value,
+            url=self.get_endpoint(FlightEndpoints.FLIGHT_AVAILABILITIES_ENDPOINT),
             payload=payload,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_AVAILABILITIES
@@ -605,7 +665,7 @@ class FlightSDK:
         self.login(on_complete=on_complete)
 
         return self.request(
-            url=f"{FlightEndpoints.FLIGHT_QUEUE_LIST.value}/{queue}",
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_QUEUE_LIST)}/{queue}",
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_QUEUE_LIST,
             method=RequestMethod.GET,

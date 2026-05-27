@@ -8,23 +8,23 @@ Created: 2025-12-04
 
 from enum import Enum
 
-from sythonlab_amadeus_enterprise_rest import settings
-
-FLIGHT_URL_BASE = settings.AMADEUS_CONFIG.get("API_URL")
-
 
 class FlightEndpoints(Enum):
     """Endpoints for Amadeus Flight API."""
 
-    FLIGHT_LOGIN_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/security/oauth2/token"
-    FLIGHT_AVAILABILITY_ENDPOINT = f"{FLIGHT_URL_BASE}/v2/shopping/flight-offers"
-    FLIGHT_AVAILABILITIES_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/shopping/availability/flight-availabilities"
-    FLIGHT_PRICING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/shopping/flight-offers/pricing"
-    FLIGHT_RESERVE_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
-    FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders/by-reference?originSystemCode=GDS"
-    FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
-    FLIGHT_CANCEL_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
-    FLIGHT_ISSUE_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
-    FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT = f"{FLIGHT_URL_BASE}/v1/booking/flight-orders"
-    FLIGHT_BRANDED_FARE_UPSELL = f"{FLIGHT_URL_BASE}/v1/shopping/flight-offers/upselling"
-    FLIGHT_QUEUE_LIST = f"{FLIGHT_URL_BASE}/v1/office/queues"
+    FLIGHT_LOGIN_ENDPOINT = "/v1/security/oauth2/token"
+    FLIGHT_AVAILABILITY_ENDPOINT = "/v2/shopping/flight-offers"
+    FLIGHT_AVAILABILITIES_ENDPOINT = "/v1/shopping/availability/flight-availabilities"
+    FLIGHT_PRICING_ENDPOINT = "/v1/shopping/flight-offers/pricing"
+    FLIGHT_RESERVE_ENDPOINT = "/v1/booking/flight-orders"
+    FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT = "/v1/booking/flight-orders/by-reference?originSystemCode=GDS"
+    FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT = f"/v1/booking/flight-orders"
+    FLIGHT_CANCEL_BOOKING_ENDPOINT = "/v1/booking/flight-orders"
+    FLIGHT_ISSUE_BOOKING_ENDPOINT = "/v1/booking/flight-orders"
+    FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT = "/v1/booking/flight-orders"
+    FLIGHT_BRANDED_FARE_UPSELL = "/v1/shopping/flight-offers/upselling"
+    FLIGHT_QUEUE_LIST = "/v1/office/queues"
+
+
+def get_flight_endpoint(api_url: str, endpoint: FlightEndpoints):
+    return f"{api_url}{endpoint.value}"

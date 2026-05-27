@@ -5,3 +5,5 @@ File: __init__.py
 Author: Sython Lab (sythonlab@gmail.com)
 Created: 2025-12-04
 """
+
+import sythonlab_amadeus_enterprise_rest.settings
