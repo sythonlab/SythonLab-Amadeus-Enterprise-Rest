@@ -2,9 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name="sythonlab_amadeus_enterprise_rest",
-    version="1.0.0",
-    packages=find_packages(),
-    install_requires=[],
+    version="1.0.1",
+    packages=find_packages(), install_requires=[
+        "requests>=2.34.2",
+        "python-dotenv>=1.2.2",
+    ],
     url="https://github.com/sythonlab/SythonLab-Amadeus-Enterprise-Rest",
     author="José Angel Alvarez Abraira",
     author_email="sythonlab@gmail.com",
