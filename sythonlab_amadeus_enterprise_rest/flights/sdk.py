@@ -154,11 +154,9 @@ class FlightSDK:
         else:
             raise ValueError("Unsupported request method")
 
-        end = None
+        end = datetime.now(timezone.utc)
 
         if self.debug:
-            end = datetime.now(timezone.utc)
-
             logger.debug("-" * 100)
             logger.debug("End time: %s", end.strftime("%d/%m/%Y %H:%M:%S"))
             logger.debug("Duration: %s", end - start)
