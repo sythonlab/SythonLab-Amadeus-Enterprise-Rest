@@ -13,6 +13,7 @@ class FlightEndpoints(Enum):
     """Endpoints for Amadeus Flight API."""
 
     FLIGHT_LOGIN_ENDPOINT = "/v1/security/oauth2/token"
+    FLIGHT_CHECK_LOGIN = "/v1/security/oauth2/token"
     FLIGHT_AVAILABILITY_ENDPOINT = "/v2/shopping/flight-offers"
     FLIGHT_AVAILABILITIES_ENDPOINT = "/v1/shopping/availability/flight-availabilities"
     FLIGHT_PRICING_ENDPOINT = "/v1/shopping/flight-offers/pricing"

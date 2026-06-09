@@ -35,6 +35,7 @@ class FlightSDK:
     auth_data = None
     debug = False
     config: Optional[AmadeusConfig] = None
+    access_token: Optional[str] = None
 
     def __init__(
             self,
@@ -44,6 +45,7 @@ class FlightSDK:
             currency: Currency = Currency.USD,
             debug: bool = False,
             ama_ref: Optional[str] = None,
+            access_token: Optional[str] = None,
             client_id: Optional[str] = None,
             client_secret: Optional[str] = None,
             production: Optional[bool] = False,
@@ -73,6 +75,8 @@ class FlightSDK:
             production=production,
         )
 
+        self.access_token = access_token
+
     @staticmethod
     def generate_ama_ref(prefix_ama_ref: str = "", suffix_ama_ref: str = ""):
         """Generate an Amadeus Enterprise REST Flight API reference."""
@@ -90,14 +94,6 @@ class FlightSDK:
             self.ama_ref = f"{self.prefix_ama_ref}/{iso}/{str(uuid4())}/{self.suffix_ama_ref}"
 
         return self.ama_ref
-
-    @property
-    def access_token(self):
-        """Retrieve the access token from auth_data if available."""
-
-        if self.auth_data:
-            return self.auth_data.get("access_token")
-        return None
 
     def build_headers(self, headers: Optional[Any] = None, use_json: bool = True, no_auth: bool = False):
         """Build request headers, adding Content-Type and Authorization if not provided."""
@@ -202,31 +198,60 @@ class FlightSDK:
 
         return get_flight_endpoint(self.config.api_url, endpoint)
 
-    def login(self, *, on_complete: Optional[Callable] = None):
+    def login(self, *, on_complete: Optional[Callable] = None, show_response: bool = False):
         """Authenticate and obtain an access token."""
 
         if not self.config:
             raise Exception("No configuration provided")
 
-        payload = {
-            "grant_type": "client_credentials",
-            "client_id": self.config.client_id,
-            "client_secret": self.config.client_secret,
-        }
+        authorized = self.check_login(on_complete=on_complete)
+
+        if not authorized:
+            payload = {
+                "grant_type": "client_credentials",
+                "client_id": self.config.client_id,
+                "client_secret": self.config.client_secret,
+            }
+
+            status, data = self.request(
+                url=self.get_endpoint(FlightEndpoints.FLIGHT_LOGIN_ENDPOINT),
+                payload=payload,
+                use_json=False,
+                no_auth=True,
+                on_complete=on_complete,
+                kind=FlightResultKind.LOGIN,
+                show_response=show_response
+            )
+
+            if status == 200:
+                self.auth_data = data
+                self.access_token = self.auth_data.get("access_token")
+
+    def check_login(self, *, on_complete: Optional[Callable] = None, show_response: bool = False):
+        """Check token information."""
+
+        if not self.config:
+            raise Exception("No configuration provided")
+
+        if not self.access_token:
+            return False
 
         status, data = self.request(
-            url=self.get_endpoint(FlightEndpoints.FLIGHT_LOGIN_ENDPOINT),
-            payload=payload,
+            url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_CHECK_LOGIN)}/{self.access_token}",
+            method=RequestMethod.GET,
             use_json=False,
             no_auth=True,
             on_complete=on_complete,
-            kind=FlightResultKind.LOGIN
+            kind=FlightResultKind.CHECK_LOGIN,
+            show_response=show_response
         )
 
-        if status == 200:
-            self.auth_data = data
+        if status != 200:
+            return False
 
-    def check_connection(self, *, on_complete: Optional[Callable] = None):
+        return data.get("state") == "approved"
+
+    def check_connection(self, *, on_complete: Optional[Callable] = None, show_response: bool = False):
         """Check Amadeus connection."""
 
         if not self.config:
@@ -244,7 +269,8 @@ class FlightSDK:
             use_json=False,
             no_auth=True,
             on_complete=on_complete,
-            kind=FlightResultKind.LOGIN
+            kind=FlightResultKind.LOGIN,
+            show_response=show_response
         )
 
         return status == 200
@@ -255,11 +281,12 @@ class FlightSDK:
             itinerary: List[SearchAvailabilityItinerary],
             travelers: List[SearchAvailabilityPax],
             only_carriers: Optional[List[str]] = None,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """Search for flight availability based on the provided itinerary and travelers."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         filters = {}
 
@@ -320,6 +347,7 @@ class FlightSDK:
             payload=payload,
             on_complete=on_complete,
             kind=FlightResultKind.FLIGHT_SEARCH,
+            show_response=show_response
         )
 
     def pricing(
@@ -328,11 +356,12 @@ class FlightSDK:
             flight_data: Any,
             payment_method: PaymentMethod,
             card_brand: Optional[CardBrand] = None,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """Payload should be the flight offers obtained from search_availability method."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         extra = {}
 
@@ -358,54 +387,61 @@ class FlightSDK:
             url=self.get_endpoint(FlightEndpoints.FLIGHT_PRICING_ENDPOINT),
             payload=payload,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_PRICING
+            kind=FlightResultKind.FLIGHT_PRICING,
+            show_response=show_response
         )
 
-    def retrieve_by_locator(self, *, locator: str, on_complete: Optional[Callable] = None):
+    def retrieve_by_locator(self, *, locator: str, on_complete: Optional[Callable] = None, show_response: bool = False):
         """Retrieve a reservation by its locator code."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         return self.request(
             url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_LOCATOR_ENDPOINT)}&reference={locator}",
             method=RequestMethod.GET,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_RETRIEVE_BY_PNR
+            kind=FlightResultKind.FLIGHT_RETRIEVE_BY_PNR,
+            show_response=show_response
         )
 
-    def retrieve_by_booking_id(self, *, booking_id: str, on_complete: Optional[Callable] = None):
+    def retrieve_by_booking_id(
+            self, *, booking_id: str, on_complete: Optional[Callable] = None, show_response: bool = False
+    ):
         """Retrieve a reservation by its booking ID."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         return self.request(
             url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_RETRIEVE_BOOKING_BY_ID_ENDPOINT)}/{booking_id}",
             method=RequestMethod.GET,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_RETRIEVE_BY_ID
+            kind=FlightResultKind.FLIGHT_RETRIEVE_BY_ID,
+            show_response=show_response
         )
 
-    def issue_booking(self, *, booking_id: str, on_complete: Optional[Callable] = None):
+    def issue_booking(self, *, booking_id: str, on_complete: Optional[Callable] = None, show_response: bool = False):
         """Issue a reservation by its booking ID."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         return self.request(
             url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_ISSUE_BOOKING_ENDPOINT)}/{booking_id}/issuance",
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_ISSUE
+            kind=FlightResultKind.FLIGHT_ISSUE,
+            show_response=show_response
         )
 
-    def cancel_booking(self, *, booking_id: str, on_complete: Optional[Callable] = None):
+    def cancel_booking(self, *, booking_id: str, on_complete: Optional[Callable] = None, show_response: bool = False):
         """Cancel a reservation by its booking ID."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         return self.request(
             url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_CANCEL_BOOKING_ENDPOINT)}/{booking_id}",
             method=RequestMethod.DELETE,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_CANCEL
+            kind=FlightResultKind.FLIGHT_CANCEL,
+            show_response=show_response
         )
 
     def fm_commission_booking(
@@ -414,11 +450,12 @@ class FlightSDK:
             booking_id: str,
             commission_type: CommissionType,
             value: float,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """Add a commission to a reservation by its booking ID."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         return self.request(
             url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_FM_COMMISSION_BOOKING_ENDPOINT)}/{booking_id}",
@@ -442,7 +479,8 @@ class FlightSDK:
                 }
             },
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_COMMISSION_BOOKING
+            kind=FlightResultKind.FLIGHT_COMMISSION_BOOKING,
+            show_response=show_response
         )
 
     def reserve(
@@ -454,11 +492,12 @@ class FlightSDK:
             payment_data: Optional[PaymentData] = None,
             issue: Optional[bool] = False,
             queue_data: Optional[FlightReserveQueueData] = None,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """Reserve a flight based on the provided pricing data, payment method, and traveler information."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         payments = []
 
@@ -555,18 +594,20 @@ class FlightSDK:
             url=url,
             payload=payload,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_RESERVE
+            kind=FlightResultKind.FLIGHT_RESERVE,
+            show_response=show_response
         )
 
     def branded_fare_upsell(
             self,
             *,
             pricing_data: Any,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """Upsell branded fares based on the provided pricing data from a previous pricing response."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         payload = {
             "data": {
@@ -581,7 +622,8 @@ class FlightSDK:
             url=self.get_endpoint(FlightEndpoints.FLIGHT_BRANDED_FARE_UPSELL),
             payload=payload,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_BRANDED_FARE_UPSELL
+            kind=FlightResultKind.FLIGHT_BRANDED_FARE_UPSELL,
+            show_response=show_response
         )
 
     def search_availabilities(
@@ -590,11 +632,12 @@ class FlightSDK:
             itinerary: List[SearchAvailabilityItinerary],
             travelers: List[SearchAvailabilityPax],
             only_carriers: Optional[List[str]] = None,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """Search for flight availabilities based on the provided itinerary and travelers."""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         filters = {}
 
@@ -650,7 +693,8 @@ class FlightSDK:
             url=self.get_endpoint(FlightEndpoints.FLIGHT_AVAILABILITIES_ENDPOINT),
             payload=payload,
             on_complete=on_complete,
-            kind=FlightResultKind.FLIGHT_AVAILABILITIES
+            kind=FlightResultKind.FLIGHT_AVAILABILITIES,
+            show_response=show_response
         )
 
     def queue_list(
@@ -658,11 +702,12 @@ class FlightSDK:
             *,
             queue: str,
             category: str,
-            on_complete: Optional[Callable] = None
+            on_complete: Optional[Callable] = None,
+            show_response: bool = False
     ):
         """View queue list"""
 
-        self.login(on_complete=on_complete)
+        self.login(on_complete=on_complete, show_response=show_response)
 
         return self.request(
             url=f"{self.get_endpoint(FlightEndpoints.FLIGHT_QUEUE_LIST)}/{queue}",
@@ -671,5 +716,6 @@ class FlightSDK:
             method=RequestMethod.GET,
             payload={
                 "category": category
-            }
+            },
+            show_response=show_response
         )

@@ -5,6 +5,7 @@ class FlightResultKind(Enum):
     """Enum for the kind of flight result."""
 
     LOGIN = "LOGIN"
+    CHECK_LOGIN = "CHECK_LOGIN"
     FLIGHT_SEARCH = "FLIGHT_SEARCH"
     FLIGHT_AVAILABILITIES = "FLIGHT_AVAILABILITIES"
     FLIGHT_PRICING = "FLIGHT_PRICING"
